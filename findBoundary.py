@@ -44,7 +44,12 @@ def getBoundary(myimage):
                 cv2.drawContours(mask,[cnt], 0, (255), -1)
                 mx = cv2.contourArea(cnt)
                 mxi = i
-    c = contours[mxi]
+    # print("mxi",mxi)
+    try:
+        c = contours[mxi]
+    except:
+        c =contours[0] 
+        # print()
     # print("ran3")
  
     img = np.zeros((416,416),np.uint8)

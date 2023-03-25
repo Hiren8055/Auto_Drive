@@ -65,7 +65,7 @@ def predict(model,frame):
     frame_height = 416
 
     size = (frame_width, frame_height)
-    print(size)
+    # print(size)
     # save = cv2.VideoWriter('result_sevc.mp4', cv2.VideoWriter_fourcc(*'XVID'),30.0, size)
     # while cap.isOpened:
         
@@ -81,13 +81,13 @@ def predict(model,frame):
     image = tensorize_image(img, input_shape, cuda)
     # print(batch_test.shape[0])
     # cv2.imshow("batch",batch_test)
-    print("ran")
+    # print("ran")
     image = image.to(dev)
-    print("ran1")
+    # print("ran1")
     output = model(image)
-    print("ran2")
+    # print("ran2")
     out = torch.argmax(output, axis=1)
-    print("ran2")
+    # print("ran2")
     
 
     outputs_list = out.cpu().detach().numpy()
@@ -190,7 +190,7 @@ def predict(model,frame):
     j= float(time.time())
     f = float(j-i)
     fps = float(1/f)
-    print(fps)
+    print("mask fps: ",fps)
     return trial_img
 
         # trial[mask_resize, :] = (255, 255, 255)

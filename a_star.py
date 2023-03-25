@@ -14,7 +14,7 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 show_animation = False
-
+import time
 
 class AStarPlanner:
 
@@ -62,7 +62,7 @@ class AStarPlanner:
             rx: x position list of the final path
             ry: y position list of the final path
         """
-
+        time_start = time.time()
         start_node = self.Node(self.calc_xy_index(sx, self.min_x),
                                self.calc_xy_index(sy, self.min_y), 0.0, -1)
         goal_node = self.Node(self.calc_xy_index(gx, self.min_x),
@@ -140,7 +140,9 @@ class AStarPlanner:
                         open_set[n_id] = node
 
         rx, ry = self.calc_final_path(goal_node, closed_set)
-
+        end = time.time()
+        if end - time_start > 0:
+            print("astar fps = ", 1/(end-time_start))
         return rx, ry
     
 
@@ -286,15 +288,15 @@ class AStarPlanner:
         self.min_y = round(min(oy))
         self.max_x = round(max(ox))
         self.max_y = round(max(oy))
-        print("min_x:", self.min_x)
-        print("min_y:", self.min_y)
-        print("max_x:", self.max_x)
-        print("max_y:", self.max_y)
+        # print("min_x:", self.min_x)
+        # print("min_y:", self.min_y)
+        # print("max_x:", self.max_x)
+        # print("max_y:", self.max_y)
 
         self.x_width = round((self.max_x - self.min_x) / self.resolution)
         self.y_width = round((self.max_y - self.min_y) / self.resolution)
-        print("x_width:", self.x_width)
-        print("y_width:", self.y_width)
+        # print("x_width:", self.x_width)
+        # print("y_width:", self.y_width)
 
         # obstacle map generation
         self.obstacle_map = [[False for _ in range(self.y_width)]

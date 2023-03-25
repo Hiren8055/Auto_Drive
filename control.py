@@ -53,7 +53,7 @@ def angleForCar(path,prev_angle):
     carx = 1000
     cary = 0
     i = 0
-    print(path)
+    # print(path)
     # if len(path) == 1:
     #     return 0,i
     allPointsInside = False
@@ -103,11 +103,11 @@ def angleForCar(path,prev_angle):
     
     # cv2.circle(image,(int(midPoint[0]),int(midPoint[1])),10,(0,0,0),-1)
     
-    print("################################")
+    # print("################################")
 
-    print(midPoint)
-    print(P1[0],P2[0])
-    print("################################")
+    # print(midPoint)
+    # print(P1[0],P2[0])
+    # print("################################")
     # cv2.line(image, (int(carx),int(cary)), (int(point[1][0]),int(point[1][1])), (0,255,0), 10)
     # cv2.line(image, (int(carx),int(cary)), (int(midPoint[0]),int(midPoint[1])), (0,0,255), 10)
     intersection = lineLineIntersection(P1,P2,point[1],(carx,cary))
@@ -217,11 +217,11 @@ def car_angle(p1, p2, is_ground):
     """
     
     x, y = p1
-    print(p2)
+    # print(p2)
     if p2:
         p, q = p2
-    print("p1:", p1)
-    print("p2:", p2)
+    # print("p1:", p1)
+    # print("p2:", p2)
     try:
         slope = (q - y)/(p - x)
     except:
