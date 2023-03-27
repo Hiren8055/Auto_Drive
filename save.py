@@ -91,7 +91,7 @@ def start():
        
         
         rx,ry = getpath(xvalues,yvalues,gx,gy)
-        topview = plotting.plot_cv2(rx,ry,topview,goal)
+        # topview = plotting.plot_cv2(rx,ry,topview,goal)
         cv2.imshow("frame",test_img)
         cv2.imshow("prediction",prediction_image)
         cv2.imshow("topview",topview)

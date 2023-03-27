@@ -2,6 +2,7 @@ import cv2
 
 
 
+
 def plot_cv2(rx,ry,topview,goal,start,radius,selected_point,boundary,grid):
     gx = goal[0]
     gy = goal[1]

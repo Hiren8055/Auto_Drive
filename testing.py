@@ -65,28 +65,9 @@ def stop_car(arduino):   #bluetooth
     #arduino.close()
     print("Stop command")
     
-def select_cam_port():
-    port = 10
-    camera = cv2.VideoCapture(port)
-    # print("Searching Camera port")
-    
-    while camera.isOpened() is not True:
-        
-        camera.release()
-        port -= 1
-        camera = cv2.VideoCapture(port)
-        
-        if port == -1:
-            print("CAMERA PORT NOT FOUND")
-            return 0
-
-    camera.release()
-    print("Camera running on port:", port)
-    return port
-
 curr_path = os.path.dirname(__file__)
 sx = 1000
-sy = 150
+sy = 100 # have to set
 MS = 1/3  
 
 
@@ -144,18 +125,6 @@ def terminate_thread(arduino):
 
 def start(cap,network,class_names,scaled_topview_queue,termination1,arduino):
     ############################### ##############################
-    # model = keras.models.load_model(curr_path+"/roadseg_epoch30_dataset867.h5",compile=False)
-    # model = keras.models.load_model(curr_path+"/roadseg_epoch20_256_dataset867.h5",compile=False)
-    # model = keras.models.load_model(curr_path+"/seg_867_25_L.pt",compile=False)
-    # '''model = create_model()
-    # model = model.load_weights("seg_867_25_L.pt")'''
-    # model = tf.keras.models.load_model("seg_867_25_L.pt")
-    ############################################################
-    # cap = cv2.VideoCapture(curr_path+"/testing_video.mp4")
-    # cap = cv2.VideoCapture(r"C:\Users\Aman Sheikh\Desktop\lane-segmentation\lane segmentation\raw2.mp4")
-    # cap  = cv2.VideoCapture(r"C:\Users\Aman Sheikh\Desktop\Image Segmentation\data\data_road\testing\image_2\um_00000.png")
-    # cap = cv2.VideoCapture(r"C:\Users\Aman Sheikh\Desktop\Solecthon\video.mp4")
-    # cap = cv2.VideoCapture(r"C:\Users\Aman Sheikh\Desktop\WIN_20230319_16_19_35_Pro.mp4")
     # cap =  cv2.VideoCapture(2)
     global prev_time_my
     global video
@@ -177,10 +146,11 @@ def start(cap,network,class_names,scaled_topview_queue,termination1,arduino):
     ########################################################
     i = 0
     j = 0
+    start_saved_time = time.time()
     f, log_file_name = dataLog.give_file()
     video = set_saved_video(cap, log_file_name+".avi", cap, True)
     tv_video = set_saved_video(cap, log_file_name+"_tv.avi", cap, False)
-    
+    print("save time",1/(time.time()-start_saved_time))
     
     # changes in log constants
     # DATA[0]["log_constants"]["CAM_PATH"] = args.input
@@ -193,10 +163,10 @@ def start(cap,network,class_names,scaled_topview_queue,termination1,arduino):
     while cap.isOpened():
         video_capture_time = time.time()
         
-        if not termination1.empty():
-            print("termination start1")
-            if termination1.get() == True:
-                break
+        # if not termination1.empty():
+        #     print("termination start1")
+        #     if termination1.get() == True:
+        #         break
             
         ret, frame = cap.read()
         # cv2.imwrite(log_file_name+".jpeg",frame)
@@ -214,7 +184,6 @@ def start(cap,network,class_names,scaled_topview_queue,termination1,arduino):
                 
         count+=1
         # cv2.imwrite(r"D:\Autonomous\Segmentation_Pytorch (2)\logs\23-3-2023\output\\"+str(count)+".jpeg",frame)
-        
         test_img = cv2.resize(frame,(416,416))
         frame_rgb = cv2.cvtColor(test_img, cv2.COLOR_BGR2RGB)
         width = 416
@@ -224,6 +193,7 @@ def start(cap,network,class_names,scaled_topview_queue,termination1,arduino):
                                 interpolation=cv2.INTER_LINEAR)
         frame_resized = cv2.resize(frame_rgb, (width, height),
                                 interpolation=cv2.INTER_LINEAR)
+        
         frame_resized = cv2.bitwise_or(frame_resized,mask)
         start_infer = time.time()
         result = custom_test.predict(model,frame_resized)
@@ -231,9 +201,14 @@ def start(cap,network,class_names,scaled_topview_queue,termination1,arduino):
         result = cv2.bitwise_not(result)
         
         
+        
+        start_darknet = time.time()
         img_for_detect = darknet.make_image(width, height, 3)
         darknet.copy_image_from_bytes(img_for_detect, frame_resized_darknet.tobytes())
         detection = darknet.detect_image(network, class_names, img_for_detect, thresh=.50)
+        print("fps for darknet", 1/(time.time()- start_darknet))
+        
+        start_other_thread_1 = time.time()
         # print("detections: ",detection)
         mybox = []
         # detection= []
@@ -266,6 +241,7 @@ def start(cap,network,class_names,scaled_topview_queue,termination1,arduino):
         
         # --------- New Goal point code
         boundAry = get_corrected_top_view(boundAry)
+        
         
         # boundAry.sort(key=lambda x: (x[1], x[0]),reverse=True)
         # y = boundAry[0][1]
@@ -340,7 +316,6 @@ def start(cap,network,class_names,scaled_topview_queue,termination1,arduino):
         cv2.imshow("segmentation",result)
         top_view = np.zeros((1100, 1300, 3),dtype=np.uint8)
         
-        
         # print("boundary",len( boundAry))
         # for i in range(len(boundAry)):
         #     cv2.circle(top_view,(int(boundAry[i][0]),int(boundAry[i][1])),2,(110,110,110),-1)
@@ -357,7 +332,7 @@ def start(cap,network,class_names,scaled_topview_queue,termination1,arduino):
             if termination1.get() == True:
                 break
             
-        if cv2.waitKey(1) == 27:
+        if cv2.waitKey(1) == "q":
                 # terminate_thread(arduino, cap, video, tv_video, DATA, log_data, f)
                 terminate_thread(arduino)
                 break
@@ -367,6 +342,8 @@ def start(cap,network,class_names,scaled_topview_queue,termination1,arduino):
             
         except:
             print("nothing executed")
+            
+        print("others in thread1 without termination",1/(time.time()- start_other_thread_1))
             
     cap.release()
     cv2.destroyAllWindows()
@@ -400,18 +377,23 @@ def getpath(cap, scaled_topview_queue,termination2,arduino):
                 terminate_thread(arduino)
                 print("t2 stopped: termination2 queue empty")
                 break
-            
+        
+        start_astar_time = time.time()    
         astar_io = scaled_topview_queue.get()
         
-        a_star = AStarPlanner(astar_io.xvalues, astar_io.yvalues, 27, 70)
+        print("scaled_topview_queue fetch time",1/(time.time() - start_astar_time))
+        grid_size = 27
+        # robot_radius = 70
+        robot_radius = 100 # change the radius as going between the cones
+        a_star = AStarPlanner(astar_io.xvalues, astar_io.yvalues, grid_size,robot_radius)
         grid = a_star.get_grid(sx, sy, astar_io.gx, astar_io.gy,astar_io.xvalues,astar_io.yvalues)
         # grid =sorted(grid, key=lambda x: x[1])
-        print("grid",grid)
+        # print("grid",grid)
 
         boundAry = grid
-        print("unsorted: ", boundAry)
+        # print("unsorted: ", boundAry)
         boundAry.sort(key=lambda x: (x[1], x[0]),reverse=True)
-        print("sorted: ", boundAry)
+        # print("sorted: ", boundAry)
         y = boundAry[0][1]
         i=1
         arr =[]
@@ -456,10 +438,10 @@ def getpath(cap, scaled_topview_queue,termination2,arduino):
         # arduino = None
         # if ARDUINO_CONNECTED:
         #     arduino = connect_arduino()
-        carx = 1000
-        cary = 0
+        carx = sx
+        cary = sy
         i = 0
-        radius = 180
+        radius = 165
         allPointsInside = False
         angle = 0
         # print("path: ",lines)
@@ -489,30 +471,29 @@ def getpath(cap, scaled_topview_queue,termination2,arduino):
         if angle > 50:
             angle = 50
         elif angle < -50:
-            angle = -50 
+            angle = -50
+
+
         print("angle",angle)
+        
+        
         # print(f"angle: {angle},dist: {dist}")
-        if not termination2.empty():
-            if termination2.get() == True:
-                terminate_thread(arduino)
-                print("t2 stopped: termination2 queue empty")
-                break
+        
             
         top_view = np.zeros((1100, 1300, 3),dtype=np.uint8)
         boundary = list(zip(astar_io.xvalues,astar_io.yvalues))
         top_view = plotting.plot_cv2(rx,ry,top_view,(astar_io.gx,astar_io.gy),(sx,sy),radius,selected_point,boundary,grid)
         top_view = cv2.resize(top_view, (608, 608),interpolation=cv2.INTER_LINEAR) 
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        org = (0,30)
+        fontScale = 1
+        color = (0, 0, 255)
+        thickness = 1
+        image = cv2.putText(top_view, "angle: "+str(angle), org, font, fontScale, color, thickness, cv2.LINE_AA)
         # cv2.imshow("boundary",boundary)
         
         # Save top view 
         tv_video.write(top_view)
-        
-        fps = 1/(time.time() - start)
-        try:
-            print("thread2 fps: ", fps)
-            cv2.imshow("topview",top_view)
-        except:
-            print("thread2 start end time diff == 0")
         
         if time.time() - prev_time_my >= MS:
             prev_time_my = time.time()
@@ -536,6 +517,13 @@ def getpath(cap, scaled_topview_queue,termination2,arduino):
                 print("t2 stopped: termination2 queue empty")
                 break
     
+        fps = 1/(time.time() - start)
+        try:
+            print("thread2 fps: ", fps)
+            cv2.imshow("topview",top_view)
+        except:
+            print("thread2 start end time diff == 0")
+        
     cap.release()
     cv2.destroyAllWindows()
     print("Thread 2 ")
@@ -584,9 +572,9 @@ def select_cam_port():
 def main():
     width = 416
     height = 416
-    config_file = r"models\yolov4-3l-v4.cfg"
-    data_file = r"models\yolov4-3l-v4.data"
-    weights = r"models\yolov4-3l-v4.weights"
+    config_file = r"models\yolov4-tiny-3l-obj_v6.cfg"
+    data_file = r"models\obj.data"
+    weights = r"models\yolov4-tiny-3l-obj_v6_2000.weights"
     network, class_names, class_colors   = darknet.load_network(
             config_file,
             data_file,
@@ -595,9 +583,13 @@ def main():
         )
     
     # cap = cv2.VideoCapture(r"D:\Autonomous\lane_segmentation\clg_roads.mp4")
+    # port = 0
     # port = select_cam_port()
+    port = r"D:\logs\26-2-2023\test74.mp4"
     
-    cap = cv2.VideoCapture(r"D:\Autonomous\logs\25-3-2023\test71_tv.avi")
+    cap = cv2.VideoCapture(port)
+    # cap = cv2.VideoCapture(1)
+    
     scaled_topview_queue = Queue(maxsize=1)
     termination1 = Queue(maxsize=1)
     termination2 = Queue(maxsize=1)
@@ -607,8 +599,6 @@ def main():
         ardiuno = connect_arduino()
     # print("network loaded")
     try:
-        # print("-----------------------------------------------------------------")
-
         t1 = Thread(target=start,args=(cap,network,class_names,scaled_topview_queue,termination1,ardiuno))
         
         t2 = Thread(target=getpath,args=(cap, scaled_topview_queue,termination2,ardiuno))
@@ -625,12 +615,10 @@ def main():
         while True:
             if not t1.is_alive() or not t2.is_alive():
                 termination1.put(True)
-                
                 termination2.put(True)
-
-                time.sleep(3)
+                # time.sleep(1)
                 break
-            time.sleep(2)
+            time.sleep(1)
         cap.release()
             
             
