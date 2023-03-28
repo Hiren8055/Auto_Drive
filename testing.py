@@ -25,7 +25,7 @@ import serial
 from threading import Thread, enumerate
 from queue import Queue
 
-ARDUINO_CONNECTED = False #in constants
+ARDUINO_CONNECTED = True #in constants
 # np.set_printoptions(threshold=sys.maxsize)
 prev_time_my = time.time()
 # video = set_saved_video(cap, log_file_name+".avi", cap)
@@ -521,9 +521,16 @@ def getpath(cap, scaled_topview_queue,termination2,arduino):
         try:
             print("thread2 fps: ", fps)
             cv2.imshow("topview",top_view)
+            
         except:
+            
             print("thread2 start end time diff == 0")
-        
+            
+    if(ARDUINO_CONNECTED):
+        serial_data = 'c'
+        print("STOPPED ")
+        time.sleep(1)
+        arduino.write(str(serial_data).encode())    
     cap.release()
     cv2.destroyAllWindows()
     print("Thread 2 ")
@@ -610,10 +617,7 @@ def main():
         t2.start()
         print("----------terminate thread 2", time.time()-start_t2)
 
-        if(ARDUINO_CONNECTED):
-            serial_data = 'c'
-            print("STOPPED : Entered the robot radius ")
-            ardiuno.write(str(serial_data).encode())
+        
             
         # print("Threads started")
         while True:
