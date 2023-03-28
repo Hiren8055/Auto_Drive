@@ -585,7 +585,7 @@ def main():
     # cap = cv2.VideoCapture(r"D:\Autonomous\lane_segmentation\clg_roads.mp4")
     # port = 0
     # port = select_cam_port()
-    port = r"D:\logs\26-2-2023\test74.mp4"
+    port = r"C:\Users\vidya\OneDrive\Pictures\Camera Roll\b.mp4"
     
     cap = cv2.VideoCapture(port)
     # cap = cv2.VideoCapture(1)
@@ -610,7 +610,11 @@ def main():
         t2.start()
         print("----------terminate thread 2", time.time()-start_t2)
 
-        
+        if(ARDUINO_CONNECTED):
+            serial_data = 'c'
+            print("STOPPED : Entered the robot radius ")
+            ardiuno.write(str(serial_data).encode())
+            
         # print("Threads started")
         while True:
             if not t1.is_alive() or not t2.is_alive():

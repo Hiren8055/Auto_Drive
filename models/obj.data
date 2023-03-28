@@ -1,0 +1,5 @@
+classes = 2
+train  = D:\THINGS\Yolo_v4\darknet\build\darknet\x64\5000_v6_rgb\train.txt
+valid  = D:\THINGS\Yolo_v4\darknet\build\darknet\x64\5000_v6_rgb\validate.txt
+names = models\obj.names
+backup = backup/
