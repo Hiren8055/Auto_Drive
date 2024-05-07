@@ -125,7 +125,7 @@ def terminate_thread(arduino):
 
 def start(cap,network,class_names,scaled_topview_queue,termination1,arduino):
     ############################### ##############################
-    # cap =  cv2.VideoCapture(2)
+    cap =  cv2.VideoCapture(0)
     global prev_time_my
     global video
     global log_file_name
@@ -134,7 +134,7 @@ def start(cap,network,class_names,scaled_topview_queue,termination1,arduino):
     # global DATA
 
     # arduino = None
-    model = torch.load("seg_2142_20_pc.pt",map_location=torch.device('cuda'))
+    model = torch.load("seg_904_70_apc.pt",map_location=torch.device('cuda'))
     model.eval()
     dev = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model.to(dev)
@@ -332,7 +332,7 @@ def start(cap,network,class_names,scaled_topview_queue,termination1,arduino):
             if termination1.get() == True:
                 break
             
-        if cv2.waitKey(1) == "q":
+        if cv2.waitKey(1) == 27:
                 # terminate_thread(arduino, cap, video, tv_video, DATA, log_data, f)
                 terminate_thread(arduino)
                 break
